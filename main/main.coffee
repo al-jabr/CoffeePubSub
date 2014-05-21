@@ -1,14 +1,21 @@
 config =
-  baseUrl : './main/core'
+  baseUrl : '.'
   paths :
-    proto : 'proto'
-    cup : 'cup'
-    polyfill : 'polyfill'
-    ps1 : 'pubsub1'
-    ps2 : 'pubsub2'
-    ps3 : 'pubsub3'
+    proto : 'main/core/proto'
+    jquery : 'libs/jquery/jquery.min'
+    cup : 'main/core/cup'
+    polyfill : 'main/core/polyfill'
+    ps1 : 'main/core/pubsub1'
+    ps2 : 'main/core/pubsub2'
+    ps3 : 'main/core/pubsub3'
+    jasmine: 'libs/jasmine/jasmine'
+    'jasmine-html': 'libs/jasmine/jasmine-html'
+    json2: 'libs/jasmine/json2'
+    boot: 'libs/jasmine/boot'
   shim :
-    'polyfill' :
+    jquery:
+      exports: '$'
+    polyfill :
       deps : []
       exports : 'polyfill'
     cup :
@@ -17,41 +24,31 @@ config =
     proto :
       deps : ['cup']
       exports : 'proto'
+    jasmine:
+      deps : []
+      exports: 'jasmine'
+    'jasmine-html':
+        deps: ['jasmine']
+      exports: 'jasmine'
+    boot:
+      deps: ['jasmine', 'jasmine-html']
+      exports: 'jasmine'
+
+
+specs = ['main/specs/js/priority-spec']
 
 
 require.config config
 
 
-require ['cup', 'ps2', 'ps1', 'proto'], (Cup, PubSub2, PubSub1, Proto)->
+require ['boot','cup', 'ps2', 'proto'], (boot,Cup, PubSub2, Proto)->
   "use strict"
 
-  ol =
-    aprop : "aval"
-    bprop : undefined
-    cprop : undefined
-    dprop : (param)->
-      console.log 'bum shaka laka ' + param
+  require specs, ()->
+    window.onload()
 
-  pro = new Proto(ol)
-  pro.on 'dprop', 1,()->
-    console.log "subscriber 1"
-    console.log this.aprop
-    return
+  return
 
-  pro.on 'dprop', 2,()->
-    console.log "subscriber 2"
 
-  pro.on 'dprop', 3,()->
-    console.log "subscriber 3"
 
-  pro.on 'dprop', 4,()->
-    console.log "subscriber 4"
-
-  pro.on 'dprop',()->
-    console.log "subscriber 10"
-
-  pro.on 'dprop', 2,()->
-    console.log "subscriber mai important 2"
-
-  pro.dprop "laka"
 

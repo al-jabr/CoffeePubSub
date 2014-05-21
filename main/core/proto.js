@@ -16,9 +16,11 @@
   }
 })(this, function(context, Proto) {
   Proto = (function() {
-    var callbacks, isFunction;
+    var cbk_attached, cbk_on, isFunction;
 
-    callbacks = {};
+    cbk_on = {};
+
+    cbk_attached = {};
 
     isFunction = function(o) {
       return typeof o === 'function';
@@ -30,32 +32,52 @@
         value = object[key];
         if (isFunction(value)) {
           Proto.prototype[key] = function() {
-            var i, k, _i, _len, _ref;
-            _ref = callbacks[key];
+            var i, k, result, _i, _len, _ref;
+            result = {};
+            _ref = cbk_attached[key];
             for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
               k = _ref[i];
               if (k !== void 0) {
-                k.apply(Proto.prototype, i === 0 ? arguments : void 0);
+                if (i === 0) {
+                  result = k.apply(Proto.prototype, arguments);
+                } else {
+                  k.apply(Proto.prototype);
+                }
               }
             }
+            return result;
           };
-          callbacks[key] = [value];
+          cbk_attached[key] = [value];
         } else {
           Proto.prototype[key] = value;
         }
       }
     }
 
-    Proto.prototype.on = function(prop, priority, fn) {
-      if (arguments[2] === void 0) {
-        fn = priority;
-        priority = callbacks[prop].length++;
+    Proto.prototype.attachTo = function(prop, theFunc, withPriority) {
+      if (arguments[3] === void 0) {
+        withPriority = cbk_attached[prop].length++;
       }
-      if (callbacks[prop][priority] === void 0 || callbacks[prop][priority] === null) {
-        callbacks[prop][priority] = fn;
+      if (cbk_attached[prop][withPriority] === void 0 || cbk_attached[prop][withPriority] === null) {
+        cbk_attached[prop][withPriority] = theFunc;
       } else {
-        Array.prototype.splice.call(callbacks[prop], priority, 0, fn);
+        Array.prototype.splice.call(cbk_attached[prop], withPriority, 0, theFunc);
       }
+    };
+
+    Proto.prototype.on = function(cbk_name, cbk) {
+      cbk_on[cbk_name] = cbk;
+    };
+
+    Proto.prototype.trigger = function(context, cbk_name, params) {
+      var rez;
+      rez = {};
+      if (arguments.length > 0) {
+        rez = cbk_on[cbk_name].apply(context, params);
+      } else {
+        rez = cbk_on;
+      }
+      return rez;
     };
 
     return Proto;
